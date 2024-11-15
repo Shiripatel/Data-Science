@@ -1,0 +1,166 @@
+
+
+
+/* Airbnb Data in Chicago */
+
+/* Que 01: Read CSV file into SAS */
+
+filename webdata url
+"https://bigblue.depaul.edu/jlee141/econdata/eco520/airbnb2019.csv" ;
+proc import 
+datafile = webdata 
+out=airbnb 
+dbms = csv 
+replace ; 
+run ;
+proc contents 
+data=airbnb ; 
+run ;
+
+/* output:- 
+1. the dataset contains 5000 observations and 12 numeric variables  
+2. 12 variables are as : ListingMonth, PricePerNight, accommodates, bathrooms, 
+bedrooms, beds, guests_included, host_total_listings, minimum_nights, 
+number_of_reviews, review_scores_rating, reviews_per_month 
+3. Dataset was last updated on 09/14/2024 */
+
+/* Que 02 : Find the frequencies for the following variables and explain what you find
+a.	the number of bedrooms 
+b.	the number of guests */ 
+
+proc freq 
+data = airbnb;
+tables bedrooms;
+run; /* interpretation - dataset shows that most listings have 1 bedroom (43.18%), followed by 2 bedrooms (27.98%) and 3 bedrooms (15.18%) */
+
+proc freq
+data = airbnb;
+tables accommodates;
+run;
+
+
+/* Que 03: Create an SAS data set called  myhw1  
+a.	that includes only the cases that have the number of accommodates from 1 to 7
+b.	Create the following  variables: 
+-	Log of the Price per Night 
+-	Square of the number of bedrooms
+-	Square root of the number of reviews
+c.	Create a variable called Host_CLASS using conditional statement (if  .; else if; else;). Here are the class settings. 
+0     <= host_total_listings < 3: Low Hosting
+3  <= host_total_listings < 10 : Mid Hosting
+host_total_listings >= 10 : High Hosting */
+
+ data myhw1;
+ set airbnb;
+
+if accommodates >= 1 and accommodates <= 7;
+
+log_price = log(PricePerNight); /* Create new variables */
+square_bedrooms = bedrooms**2; /* Square of the number of bedrooms */
+Sqrt_no_of_reviews = sqrt(number_of_reviews);/* Square root of the number of reviews */
+   
+if host_total_listings < 3 then host_class = "Low hosting";  /* Create Host_CLASS variable */
+else 
+if 3 <= host_total_listings < 10 then host_class = "Mid hosting";
+else 
+host_class = "High hosting";
+run;
+
+/* output= The data set WORK.MYHW1 has 4189 observations and 17 variables */
+
+proc print data=myhw1 (obs=10); /* To check result by diplaying first 10 observations */
+title "First 10 observation";
+run;
+
+/* Using the data, myhw1 that you created in 3),
+a.	Show the frequencies of bedroom, bathroom, and bed by Host_CLASS.  
+b.	Using PROC MEANS, find the descriptive statistics for all variables by Host_CLASS. 
+c.	Using SUMMARY, find the mean, median, P5, P95, min, max for the price per night.
+d.	Repeat c. by Host_CLASS. */
+
+
+proc freq data=myhwl;
+tables bathrooms;
+run;
+
+
+proc contents data=myhw1;
+run;
+
+
+proc freq data=myhw1;
+tables host_class*bathrooms host_class*bedrooms host_class*beds;
+run;
+
+proc means data=myhw1;
+class host_class;
+run;
+
+proc summary 
+data=myhw1 
+print mean median p5 p95 min max;
+var PricePerNight;
+run;
+
+proc summary 
+data=myhw1 
+print mean median p5 p95 min max;
+var PricePerNight;
+class host_class;
+run;
+
+
+/* 5)	Create the following graphs.
+a.	Scatter plot between LOG_PRICE and accomodates for each Host_CLASS
+b.	Bar Chart for bedroom, bathroom, and bed by Host_CLASS. */
+
+
+proc sgplot data=myhw1;
+scatter x=accommodates y=log_pricepernight / group=Host_CLASS; /*Scatter plot between LOG_PRICE and accomodates for each Host_CLASS*/
+run;
+
+proc sgplot data=myhw1;
+vbar Host_CLASS / response=bedrooms; /* Bar Chart for Bedrooms by Host_CLASS */
+run;
+
+proc sgplot data=myhw1;
+vbar Host_CLASS / response=bathrooms; /* Bar Chart for Bathrooms by Host_CLASS */
+run;
+
+proc sgplot data=myhw1;
+vbar Host_CLASS / response=beds ; /* Bar Chart for Beds by Host_CLASS */
+run;
+
+
+
+
+/* Key Observations:
+1. Total Observations: 5000
+2. Variables: 12 (ListingMonth, PricePerNight, accommodates, bathrooms, bedrooms, beds, guests_included, host_total_listings, minimum_nights, number_of_reviews, review_scores_rating, reviews_per_month)
+3. Data Last updated on 09/14/2024
+4. Bedrooms: Most listings have 1 bedroom (43.18%) and 2 bedrooms (27.98%).
+5. Accommodates: The most common accommodation is for 2 guests (27.18%).
+6. Accommodates: The distribution shows a diverse range of accommodations, but many listings cater to smaller groups
+7. New Dataset: myhw1 ->> Observations: 4189 ->> New Variables: (log_price, square_bedrooms, Sqrt_no_of_reviews, host_class)
+8. Bathrooms: High Hosting: Most listings have 1 bathroom (70.11%), Low Hosting: A wider range with many listings having 1 bathroom (80.73%), Mid Hosting: Similar to Low Hosting with 74.97% having 1 bathroom.
+9. Bedrooms: High Hosting: have 1 or 2 bedrooms (62.31%), Low Hosting: More diverse distribution, with a significant number having 1 or 2 bedrooms (86.92%, Mid Hosting: Similar to High Hosting, with 64.47% having 1 or 2 bedrooms
+10. Beds: High Hosting: Most listings have 1 or 2 beds (55.72%), Low Hosting: More diversity, with a significant number having 1 or 2 beds (92.54%), Mid Hosting: Similar to High Hosting, with 52.63% having 1 or 2 beds.
+11. Descriptive Statistics by Host Class - Mean PricePerNight: $114.40, Median PricePerNight: $96.52, 5th Percentile: $35.10, 95th Percentile: $358.98
+12. By Host Class:
+High Hosting:
+Mean: $149.93
+Median: $93.77
+5th Percentile: $35.10
+95th Percentile: $420
+
+Low Hosting:
+Mean: $114.40
+Median: $96.52
+5th Percentile: $40
+95th Percentile: $495
+
+Mid Hosting:
+Mean: $108.99
+Median: $94.8
+5th Percentile: $45
+95th Percentile: $615 */
